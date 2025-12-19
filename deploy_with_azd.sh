@@ -3,30 +3,19 @@ set -e
 
 RESOURCE_GROUP="hosted-agents"
 LOCATION="northcentralus"
-FOUNDRY_NAME="hosted-agents-ati1"
-PROJECT_NAME="hosted-agents"
-ACR_NAME="hostedagentsati1"
 IMAGE_TAG="v1"
 AGENT_NAME="myagent"
 
-az login
-
-echo "🚀 Creating resource group..."
-az group create --name $RESOURCE_GROUP --location $LOCATION
 
 echo "🚀 Deploying infrastructure..."
-DEPLOYMENT_OUTPUT=$(az deployment group create \
-  --resource-group $RESOURCE_GROUP \
-  --template-file infra/main.bicep \
-  --parameters foundryAccountName=$FOUNDRY_NAME \
-               projectName=$PROJECT_NAME \
-               acrName=$ACR_NAME \
-               location=$LOCATION \
-  --query 'properties.outputs' -o json)
+azd provision 
 
-PROJECT_ID=$(echo $DEPLOYMENT_OUTPUT | jq -r '.projectId.value')
-PROJECT_ENDPOINT=$(echo $DEPLOYMENT_OUTPUT | jq -r '.projectEndpoint.value')
-ACR_LOGIN_SERVER=$(echo $DEPLOYMENT_OUTPUT | jq -r '.acrLoginServer.value')
+PROJECT_ID=$(azd env get-value PROJECT_ID)
+PROJECT_NAME=$(azd env get-value PROJECT_NAME)
+PROJECT_ENDPOINT=$(azd env get-value PROJECT_ENDPOINT )
+ACR_LOGIN_SERVER=$(azd env get-value ACR_LOGIN_SERVER)
+ACR_NAME=$(azd env get-value ACR_NAME)
+FOUNDRY_NAME=$(azd env get-value FOUNDRY_NAME)
 
 echo "✅ Infrastructure deployed"
 echo "📦 Building and pushing container..."
@@ -53,8 +42,11 @@ echo "$DEPLOY_OUTPUT"
 # Extract agent version from output
 AGENT_VERSION=$(echo "$DEPLOY_OUTPUT" | grep "^AGENT_VERSION=" | cut -d'=' -f2)
 
-echo "▶️  Starting agent version: $AGENT_VERSION"
 az upgrade
+az cognitiveservices agent list \
+  --account-name $FOUNDRY_NAME \
+  --project-name $PROJECT_NAME 
+echo "▶️  Starting agent version: $AGENT_VERSION"
 az cognitiveservices agent start \
   --account-name $FOUNDRY_NAME \
   --project-name $PROJECT_NAME \

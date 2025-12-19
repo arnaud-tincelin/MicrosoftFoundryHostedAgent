@@ -9,7 +9,13 @@ More information on [my blog](https://medium.com/@arnaud.tincelin/deploy-hosted-
 To deploy the agent run
 
 ```bash
+# edit FOUNDRY_NAME and ACR_NAME before running deploy.sh (<unique_name>)
 ./deploy.sh
+```
+or easier
+
+```bash
+./deploy_with_azd.sh
 ```
 
 Use the link provided at the end of the script (`🌐 View in portal`) to access the playground and chat with your agent:

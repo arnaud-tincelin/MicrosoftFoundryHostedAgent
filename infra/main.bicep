@@ -1,7 +1,12 @@
 targetScope = 'resourceGroup'
 
 @description('Main location for the resources')
-param location string = 'northcentralus'
+param location string
+
+@minLength(1)
+@maxLength(64)
+@description('Name of the the environment which is used to generate a short unique hash used in all resources.')
+param environmentName string
 
 @description('Name for the AI Foundry account')
 param foundryAccountName string
@@ -13,7 +18,7 @@ param projectName string
 param acrName string
 
 resource acr 'Microsoft.ContainerRegistry/registries@2025-11-01' = {
-  name: acrName
+  name: '${acrName}${resourceToken}'
   location: location
   sku: {
     name: 'Basic'
@@ -23,6 +28,8 @@ resource acr 'Microsoft.ContainerRegistry/registries@2025-11-01' = {
     publicNetworkAccess: 'Enabled'
   }
 }
+
+var resourceToken = toLower(uniqueString(resourceGroup().id, environmentName, location))
 
 resource foundry 'Microsoft.CognitiveServices/accounts@2025-10-01-preview' = {
   name: foundryAccountName
@@ -36,7 +43,7 @@ resource foundry 'Microsoft.CognitiveServices/accounts@2025-10-01-preview' = {
   }
   properties: {
     allowProjectManagement: true
-    customSubDomainName: foundryAccountName
+    customSubDomainName: '${foundryAccountName}-${resourceToken}'
     networkAcls: {
       defaultAction: 'Allow'
       virtualNetworkRules: []
@@ -120,4 +127,11 @@ resource azureAiUserRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022
 
 output projectId string = foundry::project.id
 output projectEndpoint string = foundry::project.properties.endpoints['AI Foundry API']
-output acrLoginServer string = acr.properties.loginServer
+output ACR_LOGIN_SERVER string = acr.properties.loginServer
+output ACR_NAME string = acr.name
+output AZURE_CONTAINER_REGISTRY_NAME string = acr.name
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = acr.properties.loginServer
+output PROJECT_ID string = foundry::project.id
+output PROJECT_NAME string = foundry::project.name
+output FOUNDRY_NAME string = foundry.properties.customSubDomainName
+output PROJECT_ENDPOINT string = foundry::project.properties.endpoints['AI Foundry API']
