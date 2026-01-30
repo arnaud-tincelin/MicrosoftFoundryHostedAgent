@@ -20,19 +20,6 @@ This repository includes a dev container configuration. To use it:
 
 ## Usage
 
-### Initialize the environment
-
-```bash
-azd init
-```
-
-You'll be prompted to configure environment variables:
-- `AZURE_FOUNDRY_ACCOUNT_NAME` - Name for the Microsoft Foundry account
-- `AZURE_PROJECT_NAME` - Name for the AI Project  
-- `AZURE_ACR_NAME` - Name for the Azure Container Registry
-- `AZURE_LOCATION` - Azure region (default: northcentralus)
-- `AZURE_AGENT_NAME` - Name for the hosted agent (default: myagent)
-
 ### Deploy the agent
 
 ```bash
